@@ -1,0 +1,73 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# VS Code settings
+.vscode/
+.history/
+
+# Devcontainer local files
+.devcontainer/**/*.log
+.devcontainer/.cache/
+
+# Environment variables
+.env
+.env.*
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# MacOS
+.DS_Store
+
+# Docker
+**/docker-compose.override.yml
+
+# Ignore local pip cache
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Python profiler
+.prof
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# IDEs
+.idea/
+
