@@ -5,6 +5,7 @@ import logging
 import importlib
 from typing import List, Dict, Any
 from mimetypes import guess_extension
+from urllib.parse import urlparse, urlunparse
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -28,8 +29,8 @@ if not api_key:
     st.error("GROQ_API_KEY environment variable is not set. Please provide a valid API key in the .env file.")
     st.stop()
 
-# Set up Streamlit page
-st.set_page_config(page_title="GrokGazer", layout="wide", page_icon="🧠")
+# Set up Streamlit page with new logo
+st.set_page_config(page_title="GrokGazer", layout="wide", page_icon="logo.png")
 st.title("🧠 GrokGazer: Smart Web Intelligence Explorer")
 st.markdown("Unlock insights from the web using PocketGroq's crawling and scraping tools with Groq AI analysis.")
 
@@ -72,6 +73,20 @@ MAX_PAGES_LIMIT = 50  # Limit for crawling pages
 MODEL_NAME = "llama-3.3-70b-versatile"  # Supported model
 
 # --- Helper Functions ---
+def normalize_url(url: str) -> str:
+    """Normalize URL to its base domain (scheme + netloc)."""
+    try:
+        parsed = urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            raise ValueError("Invalid URL")
+        # Reconstruct URL with scheme and netloc only
+        normalized = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
+        logger.debug(f"Normalized URL: {url} -> {normalized}")
+        return normalized
+    except Exception as e:
+        logger.error(f"Error normalizing URL {url}: {str(e)}")
+        raise ValueError(f"Invalid URL: {str(e)}")
+
 def convert_html_to_markdown(html: str) -> str:
     """Convert HTML to Markdown using html2text."""
     try:
@@ -196,30 +211,7 @@ def crawl_website(url: str, max_depth: int, max_pages: int, formats: List[str] =
         return [{"error": f"Invalid URL or parameters: {str(e)}"}]
     except Exception as e:
         logger.error(f"Unexpected error while crawling {url}: {str(e)}")
-        return {"error": f"Unexpected error: {str(e)}"}
-
-def map_website(url: str) -> List[str]:
-    """
-    Map a website by searching for its pages.
-
-    Args:
-        url: The website URL to map.
-
-    Returns:
-        List of URLs or an error message.
-    """
-    try:
-        if not validators.url(url):
-            return ["Error: Invalid URL. Please enter a valid URL starting with http:// or https://."]
-        results = groq_provider.web_search(f"site:{url}")
-        logger.info(f"Successfully mapped {url}")
-        return [result['url'] for result in results]
-    except RequestException as e:
-        logger.error(f"Network error while mapping {url}: {str(e)}")
-        return [f"Error: Network error: {str(e)}"]
-    except Exception as e:
-        logger.error(f"Unexpected error while mapping {url}: {str(e)}")
-        return [f"Error: {str(e)}"]
+        return [{"error": f"Unexpected error: {str(e)}"}]
 
 def summarize_content(content: str) -> str:
     """
@@ -318,7 +310,7 @@ def answer_question(context: str, question: str) -> str:
 # --- Sidebar ---
 with st.sidebar:
     st.header("🔍 Navigation")
-    scraping_type = st.radio("Choose Mode", ["Scrape", "Crawl", "Map", "Multimodal", "About"], index=0)
+    scraping_type = st.radio("Choose Mode", ["Scrape", "Crawl", "Multimodal"], index=0)  # Removed "Map"
 
     st.markdown("---")
     st.header("⚙️ Options")
@@ -334,6 +326,26 @@ with st.sidebar:
     include_paths = st.text_input("Include Only Paths", placeholder="articles/")
     ignore_sitemap = st.checkbox("Ignore Sitemap")
     allow_backwards_links = st.checkbox("Allow Backwards Links")
+
+    # Clear Cache Button
+    if st.button("🗑️ Clear Cache"):
+        if "qa_context" in st.session_state:
+            del st.session_state.qa_context
+            st.success("Cache cleared successfully!")
+            logger.info("Cache cleared")
+
+    # About Section Moved to Sidebar
+    with st.expander("📘 About GrokGazer"):
+        st.markdown("""
+        **GrokGazer** is a multimodal web intelligence explorer powered by PocketGroq and Groq AI.
+
+        - 🔍 Scrape or crawl any site
+        - 📁 Output in Markdown, HTML, or structured data
+        - 🧠 AI-powered summarization, keyword extraction, and Q&A
+        - 📄 Multimodal analysis of PDFs, text, and images
+
+        Built with ❤️ using [Streamlit](https://streamlit.io), [PocketGroq](https://pocketgroq.com), and [Groq](https://groq.com)
+        """)
 
 # --- Main UI ---
 if scraping_type == "Scrape":
@@ -397,33 +409,6 @@ elif scraping_type == "Crawl":
                 st.markdown("---")
             json_result = json.dumps(results, indent=2)
             st.download_button("Download Crawl Results", json_result, "crawl_result.json")
-
-elif scraping_type == "Map":
-    st.subheader("🗘️ Map a Website")
-    if st.button("Run Mapping") and url:
-        with st.spinner("Mapping..."):
-            results = map_website(url)
-            if results and "Error" not in results[0]:
-                st.success("Mapping Complete")
-                for link in results:
-                    st.write(f"🔗 {link}")
-                json_result = json.dumps(results, indent=2)
-                st.download_button("Download Sitemap", json_result, "site_map.json")
-            else:
-                st.error(results[0])
-
-elif scraping_type == "About":
-    st.subheader("📘 About GrokGazer")
-    st.markdown("""
-    **GrokGazer** is a multimodal web intelligence explorer powered by PocketGroq and Groq AI.
-
-    - 🔍 Scrape or crawl any site
-    - 📁 Output in Markdown, HTML, or structured data
-    - 🧠 AI-powered summarization, keyword extraction, and Q&A
-    - 📄 Multimodal analysis of PDFs, text, and images
-
-    Built with ❤️ using [Streamlit](https://streamlit.io), [PocketGroq](https://pocketgroq.com), and [Groq](https://groq.com)
-    """)
 
 elif scraping_type == "Multimodal":
     st.subheader("🧾 Upload and Analyze Documents or Images")
