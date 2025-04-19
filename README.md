@@ -1,148 +1,102 @@
-# GroqCrawl: Advanced Web Crawling and Scraping with Streamlit and PocketGroq
+# GrokGazer
 
-![image](https://github.com/user-attachments/assets/2bf60247-6b93-47c9-aaf4-98b57a241082)
+<img src="logo.png" alt="GrokGazer Logo" width="400" height="400">
 
+## Overview
 
-## Table of Contents
-1. [Introduction](#introduction)
-2. [Features](#features)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Advanced Options](#advanced-options)
-6. [Output Formats](#output-formats)
-7. [Examples](#examples)
-8. [Troubleshooting](#troubleshooting)
-9. [Contributing](#contributing)
-10. [License](#license)
+GrokGazer is a cutting-edge, multimodal web intelligence explorer powered by the advanced AI capabilities of Grok 3, developed by xAI. Designed to empower students, coders, programmers, researchers, and innovators, GrokGazer tackles real-world challenges by transforming the way users interact with web data and documents. Leveraging Grok's state-of-the-art natural language processing and retrieval-augmented generation (RAG), this application extracts, analyzes, and synthesizes information with unprecedented efficiency, enabling users to unlock actionable insights from vast digital landscapes.
 
-## Introduction
+### Solving Real-World Problems
 
-GroqCrawl is a powerful and user-friendly web crawling and scraping application built with Streamlit and powered by PocketGroq. It provides an intuitive interface for extracting LLM friendly AI consumable content from websites, with support for single-page scraping, multi-page crawling, and site mapping.
+- **For Students**: Streamlines research by scraping and summarizing academic websites, helping with thesis work, study materials, and exam preparation.
+- **For Coders and Programmers**: Accelerates code documentation and bug tracking by crawling repositories or forums, extracting keywords, and providing context-aware answers.
+- **For Researchers**: Enhances data collection from diverse sources, offering structured outputs for analysis and hypothesis validation.
+- **For Innovators**: Facilitates rapid prototyping by analyzing technical documents and web resources, fostering creativity with AI-driven insights.
 
-Whether you're a data scientist, researcher, or web developer, GroqCrawl offers a seamless experience for gathering web data in various formats, including Markdown, HTML, and structured data.
+By harnessing Grok 3's `llama-3.3-70b-versatile` model, GrokGazer delivers high-fidelity summarization, keyword extraction, and question-answering, optimized for scalability and precision. Integrated with PocketGroq's web crawling tools, it redefines how professionals and learners process information in an AI-augmented era.
 
 ## Features
 
-- **Single URL Scraping**: Extract content from individual web pages.
-- **Website Crawling**: Traverse multiple pages of a website, respecting depth and page limits.
-- **Site Mapping**: Generate a list of all accessible URLs within a website.
-- **Multiple Output Formats**: Choose from Markdown, HTML, and structured data representations.
-- **Advanced Crawling Options**: Customize your crawl with exclude/include paths, depth limits, and more.
-- **Interactive Results Display**: View scraped content directly in the Streamlit interface.
-- **Download Options**: Save your results as JSON files for further processing.
+- **Web Scraping**: Extract content from a single URL in Markdown, HTML, or structured data formats.
+- **Website Crawling**: Navigate multiple pages with customizable depth and filters, outputting in Markdown, HTML, or structured data.
+- **Multimodal Analysis**: Process uploaded PDFs, text files, and images, extracting text for AI-driven insights.
+- **AI-Powered Insights**: Utilize Grok 3's AI to summarize content, extract keywords, and answer questions based on scraped or uploaded data.
+- **Download Options**: Export results as JSON for offline use.
+- **User Interface**: Streamlit-based UI with a sidebar for mode selection (Scrape, Crawl, Multimodal) and options, plus tabs for output viewing.
+- **Cache Management**: Clear session state cache to optimize memory usage.
+- **About Section**: Access detailed app information via a sidebar expander.
+
+*Future Enhancements*: Audio mode for voice input and response playback is planned to further enhance accessibility and interaction.
+
+## Prerequisites
+
+- Python 3.11+
+- Git (for cloning the repository)
+- Internet connection (for API calls and web scraping)
+- Microphone and speakers (for future audio mode)
+- Ollama server (for local model management)
 
 ## Installation
 
-1. Ensure you have Python 3.7 or later installed on your system.
+1. **Clone the Repository**:
 
-2. Clone the GroqCrawl repository:
    ```
-   git clone https://github.com/yourusername/groqcrawl.git
-   cd groqcrawl
-   ```
-
-3. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
+   git clone https://github.com/yourusername/GroqGazer.git
+   cd GroqGazer
    ```
 
-4. Set up your PocketGroq API key:
-   - Create a `.env` file in the project root directory.
-   - Add your API key to the file: `GROQ_API_KEY=your_api_key_here`
+1. **Set Up Environment**:
+    - Install Python dependencies:
+        
+   ```
+   `pip3 install --user -r requirements.txt`
+   ```
+
+2. **Configure API Keys**:
+    - Create a .env file in the project root:
+        
+   ``` 
+   `GROQ_API_KEY=your_groq_api_key_here`
+   ```
+
+   - Obtain a Groq API key from [https://console.groq.com](https://console.groq.com/).
+3. **Pull Ollama Models**:
+    - Install Ollama: Follow instructions at [https://ollama.com](https://ollama.com/).
+    - Pull required models:
+        
+   ```
+   `ollama pull llama3
+   ollama pull nomic-embed-text`
+   ```
+
+4. **Run the Application**:
+    - Start the Streamlit app:
+        
+   ```
+   `streamlit run groqgazer.py --server.enableCORS false --server.enableXsrfProtection false`
+   ```
+
+   - Open your browser at http://localhost:8501 to use GrokGazer.
 
 ## Usage
 
-To run GroqCrawl:
-
-1. Navigate to the project directory:
-   ```
-   cd path/to/groqcrawl
-   ```
-
-2. Launch the Streamlit app:
-   ```
-   streamlit run groqcrawl.py
-   ```
-
-3. Open your web browser and go to the URL displayed in the terminal (usually `http://localhost:8501`).
-
-4. Use the interface to select your scraping type, enter a URL, and configure options.
-
-5. Click "Run" to start the scraping/crawling process.
-
-## Advanced Options
-
-- **Max Depth**: Set the maximum depth for crawling (Crawl mode only).
-- **Max Pages**: Limit the total number of pages to crawl (Crawl mode only).
-- **Exclude Paths**: Specify URL patterns to exclude from crawling.
-- **Include Only Paths**: Limit crawling to specific URL patterns.
-- **Ignore Sitemap**: Skip using the sitemap.xml for crawling.
-- **Allow Backwards Links**: Enable crawling of links that point to previously visited pages.
-
-## Output Formats
-
-1. **Markdown**: 
-   - Human-readable text format.
-   - Ideal for content analysis and easy viewing.
-
-2. **HTML**: 
-   - Raw HTML content of the page.
-   - Useful for detailed structure analysis or further processing.
-
-3. **Structured Data**: 
-   - JSON format containing:
-     - Full text content
-     - Headings (h1 to h6)
-     - Links (text and href)
-     - Images (src and alt attributes)
-     - JSON-LD data (if available)
-
-## Examples
-
-### Single URL Scraping
-
-1. Select "Single URL (/scrape)" from the radio buttons.
-2. Enter a URL, e.g., `https://example.com`.
-3. Choose desired output formats.
-4. Click "Run".
-
-### Website Crawling
-
-1. Select "Crawl (/crawl)" from the radio buttons.
-2. Enter the starting URL, e.g., `https://example.com`.
-3. Set Max Depth and Max Pages in the Options section.
-4. Choose desired output formats.
-5. Click "Run".
-
-### Site Mapping
-
-1. Select "Map (/map)" from the radio buttons.
-2. Enter the website URL, e.g., `https://example.com`.
-3. Click "Run".
-
-## Troubleshooting
-
-- **API Key Issues**: Ensure your PocketGroq API key is correctly set in the `.env` file.
-- **Connection Errors**: Check your internet connection and verify the URL is accessible.
-- **Slow Performance**: For large websites, try reducing Max Depth or Max Pages.
-- **Missing Content**: Some websites may block scraping. Check the site's robots.txt file and consider respecting their scraping policies.
+- **Scrape Mode**: Enter a URL and select output formats to scrape content.
+- **Crawl Mode**: Set depth and page limits to crawl a website.
+- **Multimodal Mode**: Upload files (PDF, TXT, PNG, JPG) for analysis.
+- **Q&A**: Ask questions based on extracted content.
+- **Cache**: Clear cache via the sidebar button to manage memory.
+- **About**: Expand the sidebar for app details.
 
 ## Contributing
 
-We welcome contributions to GroqCrawl! Please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Make your changes and commit them with clear, descriptive messages.
-4. Push your changes to your fork.
-5. Submit a pull request with a detailed description of your changes.
+Contributions are welcome! Please fork the repository, create a feature branch, and submit a pull request with your changes.
 
 ## License
 
-GroqCrawl is released under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License - Feel free to modify and distribute.
 
----
+## Support
 
-For more information or support, please open an issue on the [GitHub repository](https://github.com/yourusername/groqcrawl/issues).
+For issues or questions, open an issue on GitHub or contact the maintainers.
 
-Happy crawling!
+*Built with ❤️ using Streamlit, PocketGroq, Groq, and xAI's Grok 3 technology.*
