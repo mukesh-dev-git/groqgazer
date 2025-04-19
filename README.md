@@ -9,7 +9,7 @@ GrokGazer is a cutting-edge, multimodal web intelligence explorer powered by the
 ### Solving Real-World Problems
 
 - **For Students**: Streamlines research by scraping and summarizing academic websites, helping with thesis work, study materials, and exam preparation.
-- **For Coders and Programmers**: Accelerates code documentation and bug tracking by crawling repositories or forums, extracting keywords, and providing context-aware answers.
+- **For Coders and Programmers**: Accelerates code documentation and bug tracking by crawling repositories or forums, extracting keywords, and providing context-aware answers (helps in training their custom LLMs).
 - **For Researchers**: Enhances data collection from diverse sources, offering structured outputs for analysis and hypothesis validation.
 - **For Innovators**: Facilitates rapid prototyping by analyzing technical documents and web resources, fostering creativity with AI-driven insights.
 
