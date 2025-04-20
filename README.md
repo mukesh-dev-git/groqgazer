@@ -1,6 +1,6 @@
 # GrokGazer
 
-<img src="logo.png" alt="GrokGazer Logo" width="500" height="300">
+<img src="logo.png" alt="GrokGazer Logo" width="350" height="300">
 
 ## Overview
 
