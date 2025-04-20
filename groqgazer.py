@@ -31,7 +31,7 @@ if not api_key:
 
 # Set up Streamlit page with new logo
 st.set_page_config(page_title="GrokGazer", layout="wide", page_icon="logo.png")
-st.title("🧠 GrokGazer: Smart Web Intelligence Explorer")
+st.title("GrokGazer: Smart Web Intelligence Explorer")
 st.markdown("Unlock insights from the web using PocketGroq's crawling and scraping tools with Groq AI analysis.")
 
 # Module check logic
