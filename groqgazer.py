@@ -15,13 +15,6 @@ import validators
 from requests.exceptions import RequestException
 import html2text
 from bs4 import BeautifulSoup
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Replace with your actual path
-
-# --- Constants ---
-MAX_CONTEXT_LENGTH = 100000  # Limit for session state context
-MAX_PAGES_LIMIT = 50  # Limit for crawling pages
-MODEL_NAME = "llama-3.3-70b-versatile"  # Supported model
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, filename="groqgazer.log")
@@ -36,110 +29,8 @@ if not api_key:
     st.error("GROQ_API_KEY environment variable is not set. Please provide a valid API key in the .env file.")
     st.stop()
 
-# Set up Streamlit page with logo (must be first Streamlit command)
+# Set up Streamlit page with new logo
 st.set_page_config(page_title="GrokGazer", layout="wide", page_icon="logo.png")
-
-# Custom CSS for modern UI inspired by Spotify
-st.markdown(
-    """
-    <style>
-    /* Sidebar styling with gradient */
-    .sidebar .sidebar-content {
-        background: linear-gradient(135deg, #121212 0%, #1db954 100%);
-        color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-    }
-    .sidebar .sidebar-content h2 {
-        text-align: center;
-        font-size: 1.5em;
-        font-weight: 700;
-        color: #1db954;
-        text-transform: uppercase;
-    }
-    .sidebar .stRadio > label {
-        color: #ffffff !important;
-        font-size: 1.1em;
-    }
-    .sidebar .stButton>button {
-        background: linear-gradient(90deg, #1db954, #191414);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 20px;
-        transition: transform 0.3s ease;
-    }
-    .sidebar .stButton>button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 10px #1db954;
-    }
-    .stExpander {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        padding: 10px;
-    }
-    .stExpander div[role="button"] {
-        color: #1db954 !important;
-    }
-
-    /* Main content styling */
-    .main .block-container {
-        background: #1a1a1a;
-        color: #e0e0e0;
-        padding: 20px;
-        border-radius: 10px;
-    }
-    .stTitle {
-        color: #1db954 !important;
-        font-size: 2.5em !important;
-        text-align: center;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-    .stSubheader {
-        color: #ffffff !important;
-        font-size: 1.5em !important;
-        font-weight: 600;
-    }
-    .stTextArea, .stFileUploader, .stDownloadButton {
-        background: #2a2a2a;
-        border: 1px solid #444;
-        border-radius: 10px;
-        color: #e0e0e0;
-    }
-    .stButton>button {
-        background: linear-gradient(90deg, #1db954, #191414);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 20px;
-        transition: transform 0.3s ease;
-    }
-    .stButton>button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 10px #1db954;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background: #2a2a2a !important;
-        color: #e0e0e0 !important;
-        padding: 10px 20px !important;
-        border-radius: 10px 10px 0 0 !important;
-        transition: all 0.3s ease;
-    }
-    .stTabs [data-baseweb="tab"]:hover {
-        background: #1db954 !important;
-        color: #121212 !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background: #1db954 !important;
-        color: #121212 !important;
-        font-weight: 700;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 st.title("GrokGazer: Smart Web Intelligence Explorer")
 st.markdown("Unlock insights from the web using PocketGroq's crawling and scraping tools with Groq AI analysis.")
 
@@ -171,11 +62,15 @@ groq_client: Groq | None = None
 try:
     groq_provider = GroqProvider(api_key=api_key)
     groq_client = Groq(api_key=api_key)
-    logger.info(f"Initialized Groq client with model: {MODEL_NAME}")
     st.success("Groq services initialized successfully.")
 except Exception as e:
     st.error(f"Error initializing Groq services: {str(e)}")
     st.stop()
+
+# --- Constants ---
+MAX_CONTEXT_LENGTH = 100000  # Limit for session state context
+MAX_PAGES_LIMIT = 50  # Limit for crawling pages
+MODEL_NAME = "llama-3.3-70b-versatile"  # Supported model
 
 # --- Helper Functions ---
 def normalize_url(url: str) -> str:
@@ -184,6 +79,7 @@ def normalize_url(url: str) -> str:
         parsed = urlparse(url)
         if not parsed.scheme or not parsed.netloc:
             raise ValueError("Invalid URL")
+        # Reconstruct URL with scheme and netloc only
         normalized = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
         logger.debug(f"Normalized URL: {url} -> {normalized}")
         return normalized
@@ -237,6 +133,7 @@ def scrape_url(url: str, formats: List[str] = ["markdown", "html"]) -> Dict[str,
     try:
         if not validators.url(url):
             return {"error": "Invalid URL. Please enter a valid URL starting with http:// or https://."}
+        # PocketGroq only returns HTML
         html_result = groq_provider.enhanced_web_tool.scrape_page(url, formats=["html"])
         if not isinstance(html_result, dict) or "html" not in html_result:
             return {"error": "Failed to retrieve HTML content"}
@@ -247,7 +144,7 @@ def scrape_url(url: str, formats: List[str] = ["markdown", "html"]) -> Dict[str,
         if "structured_data" in formats:
             result["structured_data"] = extract_structured_data(result["html"])
         
-        logger.info(f"Successfully scraped {url} with markdown: {len(result.get('markdown', '')) > 0}")
+        logger.info(f"Successfully scraped {url}")
         return result
     except RequestException as e:
         logger.error(f"Network error while scraping {url}: {str(e)}")
@@ -293,6 +190,7 @@ def crawl_website(url: str, max_depth: int, max_pages: int, formats: List[str] =
         if include_paths:
             groq_provider.enhanced_web_tool.include_paths = [path.strip() for path in include_paths.split(",")]
         
+        # PocketGroq only returns HTML
         html_results = groq_provider.enhanced_web_tool.crawl(url, formats=["html"])
         results = []
         for html_result in html_results:
@@ -326,8 +224,7 @@ def summarize_content(content: str) -> str:
         Summary text or an error message.
     """
     try:
-        logger.info(f"Summarizing with model: {MODEL_NAME}")
-        prompt = f"Summarize the following content in 100 words or less:\n\n{content[:4000]}"
+        prompt = f"Summarize the following content in 100 words or less:\n\n{content[:4000]}"  # Limit input size
         response = groq_client.chat.completions.create(
             model=MODEL_NAME,
             messages=[{"role": "user", "content": prompt}],
@@ -358,8 +255,7 @@ def extract_keywords(content: str) -> List[str]:
         List of keywords or an error message.
     """
     try:
-        logger.info(f"Extracting keywords with model: {MODEL_NAME}")
-        prompt = f"Extract the top 5 keywords from the following content:\n\n{content[:4000]}"
+        prompt = f"Extract the top 5 keywords from the following content:\n\n{content[:4000]}"  # Limit input size
         response = groq_client.chat.completions.create(
             model=MODEL_NAME,
             messages=[{"role": "user", "content": prompt}],
@@ -391,7 +287,6 @@ def answer_question(context: str, question: str) -> str:
         Answer text or an error message.
     """
     try:
-        logger.info(f"Answering question with model: {MODEL_NAME}")
         prompt = f"Based on the following context, answer the question:\n\nContext: {context[:4000]}\n\nQuestion: {question}"
         response = groq_client.chat.completions.create(
             model=MODEL_NAME,
@@ -414,27 +309,26 @@ def answer_question(context: str, question: str) -> str:
 
 # --- Sidebar ---
 with st.sidebar:
-    st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
-    st.markdown('<h2>🌐 Navigation</h2>', unsafe_allow_html=True)
-    scraping_type = st.radio("Choose Mode", ["Scrape", "Crawl", "Multimodal"], key="mode_switch", on_change=lambda: st.session_state.update({"displayed_result": None, "qa_context": ""}))
+    st.header("🔍 Navigation")
+    scraping_type = st.radio("Choose Mode", ["Scrape", "Crawl", "Multimodal"], index=0)  # Removed "Map"
 
     st.markdown("---")
-    st.markdown('<h2>⚙️ Options</h2>', unsafe_allow_html=True)
+    st.header("⚙️ Options")
 
-    url = st.text_input("Website URL", placeholder="https://example.com", key="url_input")
+    url = st.text_input("Website URL", placeholder="https://example.com")
 
     if scraping_type == "Crawl":
-        max_depth = st.number_input("Max Depth", min_value=1, value=3, key="max_depth")
-        max_pages = st.number_input("Max Pages", min_value=1, value=10, key="max_pages")
+        max_depth = st.number_input("Max Depth", min_value=1, value=3)
+        max_pages = st.number_input("Max Pages", min_value=1, value=10)
 
-    formats = st.multiselect("Output Formats", ["markdown", "html", "structured_data"], default=["markdown", "html"], key="formats")
-    exclude_paths = st.text_input("Exclude Paths", placeholder="blog/,about/", key="exclude_paths")
-    include_paths = st.text_input("Include Only Paths", placeholder="articles/", key="include_paths")
-    ignore_sitemap = st.checkbox("Ignore Sitemap", key="ignore_sitemap")
-    allow_backwards_links = st.checkbox("Allow Backwards Links", key="allow_backwards_links")
+    formats = st.multiselect("Output Formats", ["markdown", "html", "structured_data"], default=["markdown", "html"])
+    exclude_paths = st.text_input("Exclude Paths", placeholder="blog/,about/")
+    include_paths = st.text_input("Include Only Paths", placeholder="articles/")
+    ignore_sitemap = st.checkbox("Ignore Sitemap")
+    allow_backwards_links = st.checkbox("Allow Backwards Links")
 
     # Clear Cache Button
-    if st.button("🗑️ Clear Cache", key="clear_cache"):
+    if st.button("🗑️ Clear Cache"):
         if "qa_context" in st.session_state:
             del st.session_state.qa_context
             st.success("Cache cleared successfully!")
@@ -445,52 +339,29 @@ with st.sidebar:
         st.markdown("""
         **GrokGazer** is a multimodal web intelligence explorer powered by PocketGroq and Groq AI.
 
-        - 🌐 Scrape or crawl any site
-        - 📂 Output in Markdown, HTML, or structured data
-        - 🧠 AI-powered summarization, keyword extraction, and Q&A (using Groq's llama-3.3-70b-versatile)
+        - 🔍 Scrape or crawl any site
+        - 📁 Output in Markdown, HTML, or structured data
+        - 🧠 AI-powered summarization, keyword extraction, and Q&A
         - 📄 Multimodal analysis of PDFs, text, and images
 
         Built with ❤️ using [Streamlit](https://streamlit.io), [PocketGroq](https://pocketgroq.com), and [Groq](https://groq.com)
         """)
 
-    # Q&A Section Moved to Sidebar
-    if st.session_state.get("qa_context", ""):
-        st.markdown("## 💬 Ask Questions")
-        user_question = st.text_input("Ask your question here...", placeholder="What is the main topic of the content?", key="question_input")
-        if st.button("Get Answer", key="get_answer"):
-            with st.spinner("Thinking..."):
-                try:
-                    answer = answer_question(st.session_state.qa_context, user_question)
-                    st.markdown("### 🤖 Answer")
-                    st.success(answer)
-                    logger.info(f"Successfully answered question: {user_question}")
-                except Exception as e:
-                    st.error(f"Failed to get answer: {str(e)}")
-                    logger.error(f"Failed to answer question: {e}")
-        st.write(f"Debug: qa_context length = {len(st.session_state.qa_context)}")  # Debug check
-        st.rerun()  # Force re-render to ensure sidebar updates
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # --- Main UI ---
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
 if scraping_type == "Scrape":
-    st.subheader("🔍 Scrape a Single URL")
-    if st.button("Run Scrape", key="run_scrape"):
+    st.subheader("🔎 Scrape a Single URL")
+    if st.button("Run Scrape") and url:
         with st.spinner("Scraping..."):
             result = scrape_url(url, formats)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.session_state.displayed_result = result
-                if "markdown" in formats and "markdown" in result and result["markdown"]:
-                    st.session_state.qa_context = result["markdown"][:MAX_CONTEXT_LENGTH]
-                    logger.info(f"Set qa_context with length: {len(st.session_state.qa_context)}")
                 st.success("Scrape successful!")
                 tabs = st.tabs(["Markdown", "HTML", "Structured Data"])
                 if "markdown" in formats and "markdown" in result:
+                    st.session_state.qa_context = result["markdown"][:MAX_CONTEXT_LENGTH]
                     with tabs[0]:
-                        st.text_area("Markdown Output", result["markdown"], height=250, key="markdown_output")
+                        st.text_area("Markdown Output", result["markdown"], height=250)
                         st.markdown("### 🧠 Summary")
                         summary = summarize_content(result["markdown"])
                         st.write(summary)
@@ -504,32 +375,25 @@ if scraping_type == "Scrape":
                     with tabs[2]:
                         st.json(result["structured_data"])
                 json_result = json.dumps(result, indent=2)
-                st.download_button("Download JSON", json_result, "scrape_result.json", key="download_scrape")
+                st.download_button("Download JSON", json_result, "scrape_result.json")
 
 elif scraping_type == "Crawl":
     st.subheader("🕷️ Crawl a Website")
-    if st.button("Run Crawl", key="run_crawl"):
+    if st.button("Run Crawl") and url:
         with st.spinner("Crawling..."):
             results = crawl_website(url, max_depth, max_pages, formats, exclude_paths, include_paths, ignore_sitemap, allow_backwards_links)
-            if any("error" in r for r in results):
-                for result in results:
-                    if "error" in result:
-                        st.error(result["error"])
-            else:
-                st.session_state.displayed_result = results
-                if "markdown" in formats:
-                    combined_text = "\n".join([r.get("markdown", "") for r in results if "markdown" in r and r.get("markdown", "")])[:MAX_CONTEXT_LENGTH]
-                    if combined_text:
-                        st.session_state.qa_context = combined_text
-                        logger.info(f"Set qa_context with length: {len(st.session_state.qa_context)}")
-                st.success("Crawl successful!")
-                for i, result in enumerate(results, 1):
-                    st.markdown(f"### Page {i}")
+            for i, result in enumerate(results, 1):
+                st.markdown(f"### Page {i}")
+                if "error" in result:
+                    st.error(result["error"])
+                else:
                     st.write(f"🔗 URL: {result.get('url', 'N/A')}")
                     tabs = st.tabs(["Markdown", "HTML", "Structured Data"])
                     if "markdown" in formats and "markdown" in result:
+                        combined_text = "\n".join([r.get("markdown", "") for r in results if "markdown" in r])[:MAX_CONTEXT_LENGTH]
+                        st.session_state.qa_context = combined_text
                         with tabs[0]:
-                            st.text_area(f"Markdown ({i})", result["markdown"], height=200, key=f"markdown_crawl_{i}")
+                            st.text_area(f"Markdown ({i})", result["markdown"], height=200)
                             st.markdown("### 🧠 Summary")
                             summary = summarize_content(result["markdown"])
                             st.write(summary)
@@ -542,13 +406,13 @@ elif scraping_type == "Crawl":
                     if "structured_data" in formats and "structured_data" in result:
                         with tabs[2]:
                             st.json(result["structured_data"])
-                    st.markdown("---")
-                json_result = json.dumps(results, indent=2)
-                st.download_button("Download Crawl Results", json_result, "crawl_result.json", key="download_crawl")
+                st.markdown("---")
+            json_result = json.dumps(results, indent=2)
+            st.download_button("Download Crawl Results", json_result, "crawl_result.json")
 
 elif scraping_type == "Multimodal":
-    st.subheader("📤 Upload and Analyze Documents or Images")
-    uploaded_file = st.file_uploader("Upload a PDF, TXT, or Image", type=["pdf", "txt", "png", "jpg", "jpeg"], key="file_uploader")
+    st.subheader("🧾 Upload and Analyze Documents or Images")
+    uploaded_file = st.file_uploader("Upload a PDF, TXT, or Image", type=["pdf", "txt", "png", "jpg", "jpeg"])
     extracted_text = ""
 
     if uploaded_file is not None:
@@ -575,13 +439,11 @@ elif scraping_type == "Multimodal":
                 logger.error(f"Failed to extract content: {str(e)}")
 
         if extracted_text:
-            st.session_state.displayed_result = {"extracted_text": extracted_text}
-            st.session_state.qa_context = extracted_text[:MAX_CONTEXT_LENGTH]
-            logger.info(f"Set qa_context with length: {len(st.session_state.qa_context)}")
             st.success("✅ Text extracted successfully!")
-            st.text_area("Extracted Content", extracted_text, height=250, key="extracted_content")
+            st.text_area("Extracted Content", extracted_text, height=250)
+            st.session_state.qa_context = extracted_text[:MAX_CONTEXT_LENGTH]
 
-            if st.button("🔎 Analyze", key="analyze_button"):
+            if st.button("🔎 Analyze"):
                 with st.spinner("Analyzing..."):
                     try:
                         summary_result = summarize_content(extracted_text)
@@ -598,16 +460,27 @@ elif scraping_type == "Multimodal":
                             "keywords": keywords_result,
                             "extracted_text": extracted_text
                         }
-                        st.download_button("📥 Download Analysis", json.dumps(results, indent=2), "analysis.json", key="download_analysis")
+                        st.download_button("📥 Download Analysis", json.dumps(results, indent=2), "analysis.json")
                         logger.info("Successfully analyzed uploaded file")
                     except Exception as e:
                         st.error(f"Analysis failed: {str(e)}")
                         logger.error(f"Analysis failed: {str(e)}")
 
-# Session state management
-if "displayed_result" not in st.session_state:
-    st.session_state.displayed_result = None
+# Session state for Q&A
 if "qa_context" not in st.session_state:
     st.session_state.qa_context = ""
 
-st.markdown('</div>', unsafe_allow_html=True)
+# Q&A section
+if scraping_type in ["Scrape", "Crawl", "Multimodal"] and st.session_state.get("qa_context", ""):
+    st.markdown("## 💬 Ask Questions about the Extracted Content")
+    user_question = st.text_input("Ask your question here...", placeholder="What is the main topic of the content?")
+    if st.button("Get Answer") and user_question:
+        with st.spinner("Thinking..."):
+            try:
+                answer = answer_question(st.session_state.qa_context, user_question)
+                st.markdown("### 🤖 Answer")
+                st.success(answer)
+                logger.info(f"Successfully answered question: {user_question}")
+            except Exception as e:
+                st.error(f"Failed to get answer: {str(e)}")
+                logger.error(f"Failed to answer question: {str(e)}")
