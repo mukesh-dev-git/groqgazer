@@ -2,15 +2,10 @@ streamlit==1.32.0
 pocketgroq==0.4.8
 bs4==0.0.2
 groq==0.8.0
-python-dotenv==1.1.0 
+python-dotenv==1.1.0
 requests==2.32.3
 html2text==2024.2.26
 validators==0.22.0
-ollama==0.3.3
 pdfplumber==0.11.4
 Pillow==10.4.0
 pytesseract==0.3.10
-langchain-ollama==0.2.0
-pytest==8.3.5
-iniconfig==2.1.0
-pluggy==1.5.0
